@@ -1,0 +1,19 @@
+﻿<Application x:Class="DocumentStorage.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:DocumentStorage"
+             StartupUri="MainWindow.xaml">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Dictionaries/BordersDict.xaml"/>
+                <ResourceDictionary Source="Dictionaries/ButtonsDict.xaml"/>
+                <ResourceDictionary Source="Dictionaries/CheckBoxesDict.xaml"/>
+                <ResourceDictionary Source="Dictionaries/ComboboxesDict.xaml"/>
+                <ResourceDictionary Source="Dictionaries/MenuDict.xaml"/>
+                <ResourceDictionary Source="Dictionaries/TextBlocksDict.xaml"/>
+                <ResourceDictionary Source="Dictionaries/TextboxesDict.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

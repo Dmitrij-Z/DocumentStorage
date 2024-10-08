@@ -1,0 +1,304 @@
+﻿<Window x:Class="DocumentStorage.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+        xmlns:beh="clr-namespace:DocumentStorage.Behaviors"
+        xmlns:conv="clr-namespace:DocumentStorage.Converters"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        WindowStartupLocation="CenterScreen"
+        MinHeight="250" MinWidth="750"
+        Title="MainWindow" Height="450" Width="900">
+    <Window.Resources>
+        <conv:DocSampleVisibleConverter x:Key="docSampleVisibleConverter" />
+        <conv:ChangingDocToVisibleVonverter x:Key="changingDocToVisibleVonverter" />
+        <conv:NotNullToBooleanConverter x:Key="notNullToBooleanConverter" />
+    </Window.Resources>
+    <Grid>
+        <DockPanel LastChildFill="True">
+            <Menu DockPanel.Dock="Top">
+                <MenuItem Header="Файл..." Style="{StaticResource mStdStyle}" >
+                    <MenuItem x:Name="miEditMode" Header="Pежим правки" IsCheckable="True" IsChecked="{Binding EditMode}" Style="{StaticResource miStdStyle}" />
+                </MenuItem>
+            </Menu>
+            <Grid DockPanel.Dock="Left" Margin="3">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="15"/>
+                    <RowDefinition Height="20"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <TextBlock Text="Поиск:" Grid.Row="0"/>
+                <TextBox x:Name="tboxFilter" Grid.Row="1" Text="{Binding SearchText, Mode=TwoWay}"
+                         Style="{StaticResource tbxOpacityAtEnableStyle}"
+                         IsEnabled="{Binding IsCurrDocChanged, Converter={conv:InverseBoolConverter}}">
+                    <i:Interaction.Triggers>
+                        <i:EventTrigger EventName="TextChanged">
+                            <i:InvokeCommandAction Command="{Binding FilterChangedCommand}" CommandParameter="{Binding ElementName=tboxFilter, Path=Text}"/>
+                        </i:EventTrigger>
+                    </i:Interaction.Triggers>
+                </TextBox>
+                <StackPanel Orientation="Horizontal" Grid.Row="2" Margin="0,2" IsEnabled="{Binding IsCurrDocChanged, Converter={conv:InverseBoolConverter}}">
+                    <CheckBox IsChecked="{Binding CaseSensitive}" Style="{StaticResource chkOnlyTextStyle}" />
+                    <ComboBox ItemsSource="{Binding SearchConditions}" Style="{StaticResource cmbOpacityAtEnableStyle}"
+                          Cursor="Hand" FontWeight="Bold" Width="318"
+                          SelectedItem="{Binding SelectedCondition}"
+                          DisplayMemberPath="TextValue"/>
+                </StackPanel>
+                <ListBox Grid.Row="3" ItemsSource="{Binding Docs}"
+                         FontWeight="Bold" Cursor="Hand" Width="350"
+                         IsSynchronizedWithCurrentItem="True"
+                         SelectedItem="{Binding SelectedDoc}">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Visibility="{Binding State, Converter={conv:IntegerToHiddenConverter}}"
+                                               Foreground="{Binding State, Converter={conv:IntegerToForegroundConverter}}"
+                                               Margin="0,0,2,0" Text="&#9654;" />
+                                <TextBlock Text="{Binding Title}" ToolTip="{Binding Title}" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </Grid>
+            <StatusBar DockPanel.Dock="Bottom">
+                <StatusBar.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="5" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                        </Grid>
+                    </ItemsPanelTemplate>
+                </StatusBar.ItemsPanel>
+                <StatusBarItem>
+                    <TextBlock Text="Создано:"/>
+                </StatusBarItem>
+                <StatusBarItem Grid.Column="1">
+                    <TextBlock Text="{Binding CurrDocCreatedOn}"/>
+                </StatusBarItem>
+                <Separator Grid.Column="2" />
+                <StatusBarItem Grid.Column="3">
+                    <TextBlock Text="Обновлено:"/>
+                </StatusBarItem>
+                <StatusBarItem Grid.Column="4">
+                    <TextBlock Text="{Binding CurrDocUpdatedOn}"/>
+                </StatusBarItem>
+            </StatusBar>
+            <Grid DockPanel.Dock="Top" Margin="0,0,0,10">
+                <TextBlock Text="Режим правки" Style="{StaticResource tblkEditModeTextStyle}"
+                       Visibility="{Binding EditMode, Converter={conv:BoolToCollapsedConverter}}"/>
+                <TextBlock Text="{Binding CurrentTitle}" Style="{StaticResource tblkTitleStyle}" Grid.Row="0"
+                       Visibility="{Binding EditMode, Converter={conv:InverseBoolToCollapsedConverter}}"/>
+            </Grid>
+            <Grid DockPanel.Dock="Bottom" Height="52" Visibility="{Binding EditMode, Converter={conv:BoolToCollapsedConverter}}">
+                <StackPanel Orientation="Horizontal" Margin="5,10,0,10" >
+                    <Button ToolTip="Сохранить как новое" Margin="20,0"
+                            Visibility="{Binding CurrentTitle, Converter={conv:NullOrEmptyToHiddenConverter}}"
+                            Style="{StaticResource btnDisableForTimeStyle}"
+                            Command="{Binding AddDocCommand}">
+                        <Button.Template>
+                            <ControlTemplate>
+                                <Image Source="/Resources/dobavit_pzpg8sf8hiew_32.png" />
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+                    <Border BorderThickness="1" Margin="20,0" Style="{StaticResource brdrFlashingBorderStyle}">
+                        <Button x:Name="btnSaveChange" ToolTip="Сохранить изменения"
+                            Visibility="{Binding IsCurrDocChanged, Converter={conv:BoolToHiddenConverter}}"    
+                            Style="{StaticResource btnDisableForTimeStyle}"
+                            Command="{Binding ChangeDocCommand}">
+                            <Button.Template>
+                                <ControlTemplate>
+                                    <Image Source="/Resources/sohranit_fajl_660z5eqe08bt_32.png" />
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+                    </Border>
+                    <Button ToolTip="Удалить" Margin="20,0"
+                            Visibility="{Binding SelectedDoc, Converter={conv:NullToHiddenConverter}}"
+                            Style="{StaticResource btnDisableForTimeStyle}"
+                            Command="{Binding DeleteDocCommand}">
+                        <Button.Template>
+                            <ControlTemplate>
+                                <Image Source="/Resources/delete_bzd7zpksn0ye_32.png"/>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+                    <Button ToolTip="Очистить форму" Margin="20,0,0,0"
+                            Style="{StaticResource btnDisableForTimeStyle}"
+                            Command="{Binding ClearDocCommand}">
+                        <Button.Template>
+                            <ControlTemplate>
+                                <Image Source="/Resources/refresh_too1mdomkewq_32.png"/>
+                            </ControlTemplate>
+                        </Button.Template>
+                        <i:Interaction.Behaviors>
+                            <beh:FocusElementAfterClickBehavior FocusElement="{Binding ElementName=tboxCurrentTitle, Mode=OneWay}"/>
+                        </i:Interaction.Behaviors>
+                    </Button>
+                </StackPanel>
+            </Grid>
+            <Border BorderBrush="Gainsboro" BorderThickness="1">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <Grid >
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid Visibility="{Binding EditMode, Converter={conv:BoolToHiddenConverter}}" HorizontalAlignment="Left">
+                            <Button ToolTip="Отменить изменения" Margin="20,0" Cursor="Hand"
+                                        Visibility="{Binding ElementName=btnSaveChange, Path=Visibility}"
+                                        Command="{Binding UndoChangesCommand}">
+                                <Button.Template>
+                                    <ControlTemplate>
+                                        <Image Source="/Resources/otmenit_m2x75dok96ki_32.png" Width="20" Height="20"/>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
+                        </Grid>
+                        <StackPanel Orientation="Horizontal" Grid.Row="1" Visibility="{Binding EditMode, Converter={conv:BoolToCollapsedConverter}}">
+                            <TextBlock Text="*" Style="{StaticResource docsPrefixRequiredFieldsStyle}" Foreground="Red" />
+                            <TextBlock Text="Название:" Style="{StaticResource docsRequiredFieldsCaptionStyle}"/>
+                        </StackPanel>
+                        <TextBox x:Name="tboxCurrentTitle" Text="{Binding CurrentTitle, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Grid.Row="1" Grid.Column="1" 
+                             Visibility="{Binding EditMode, Converter={conv:BoolToCollapsedConverter}}"
+                             Style="{StaticResource tbxDocInputFieldsStyle}"
+                             IsReadOnly="{Binding EditMode, Converter={conv:InverseBoolConverter}}">
+                            <TextBox.InputBindings>
+                                <KeyBinding Key="Enter" Command="{Binding SetFocusOnTextboxCommand}" CommandParameter="tbxComment" />
+                            </TextBox.InputBindings>
+                        </TextBox>
+                        <TextBlock Text="Комментарий:" Grid.Row="2" Grid.Column="0" Style="{StaticResource fieldsCaptionStyle}"/>
+                        <ScrollViewer Grid.Row="2" Grid.Column="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                            <TextBox x:Name="tbxComment" Style="{StaticResource tbxWrappingInputFieldsStyle}" MinHeight="36"
+                             IsReadOnly="{Binding EditMode, Converter={conv:InverseBoolConverter}}"
+                             Text="{Binding CurrentComment, UpdateSourceTrigger=PropertyChanged}"/>
+                        </ScrollViewer>
+                        <GroupBox Grid.Row="3" Grid.ColumnSpan="2" Header="Бланки/Образцы" Margin="15" HorizontalAlignment="Left">
+                            <Grid Grid.IsSharedSizeScope="True" Margin="5">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="80" SharedSizeGroup="D0" />
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="D1"/>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="D2" />
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="D3" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="50" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <TextBlock Text="Бланк:" VerticalAlignment="Center" Style="{StaticResource fieldsCaptionStyle}"/>
+                                <Button Grid.Column="1" Command="{Binding OpenDocumCommand}" CommandParameter="DocFile"
+                                        IsEnabled="{Binding CurrentDocData, Converter={StaticResource notNullToBooleanConverter}}"
+                                        Style="{StaticResource OpenDocBtnStyle}" >
+                                    <StackPanel Orientation="Horizontal">
+                                        <Image Source="/Resources/files_kcr2ip7vk1sd_32.png" Margin="0,2,5,2" />
+                                        <TextBlock Text="Открыть" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Button>
+                                <Grid Grid.Column="2" Visibility="{Binding EditMode, Converter={conv:BoolToCollapsedConverter}}" >
+                                    <Button Command="{Binding SelectDocumCommand}" CommandParameter="DocFile"
+                                            Visibility="{Binding CurrentDocData, Converter={conv:NullToCollapsedConverter}}"
+                                            Style="{StaticResource ChangeDocBtnStyle}" >
+                                        <StackPanel Orientation="Horizontal">
+                                            <Image Source="/Resources/transfer_5jo2ztun4d33_32.png" Margin="0,2,5,2" />
+                                            <TextBlock Text="Заменить" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                    </Button>
+                                    <Button Command="{Binding SelectDocumCommand}" CommandParameter="DocFile"
+                                            Visibility="{Binding CurrentDocData, Converter={conv:NotNullToCollapsedConverter}}"
+                                            Style="{StaticResource ChangeDocBtnStyle}" >
+                                        <StackPanel Orientation="Horizontal">
+                                            <Image Source="/Resources/analitika_zocfxhqkgjr1_32.png" Margin="0,2,5,2" />
+                                            <TextBlock Text="Выбрать" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                    </Button>
+                                </Grid>
+                                <Button Grid.Column="3" Command="{Binding DeleteDocumCommand}" CommandParameter="DocFile"
+                                        Visibility="{Binding EditMode, Converter={conv:BoolToCollapsedConverter}}"
+                                        IsEnabled="{Binding CurrentDocData, Converter={StaticResource notNullToBooleanConverter}}"
+                                        Style="{StaticResource DeleteDocBtnStyle}" >
+                                    <StackPanel Orientation="Horizontal">
+                                        <Image Source="/Resources/trash_exbmbmykku9d_32.png" Margin="0,2,5,2" />
+                                        <TextBlock Text="Удалить" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Button>
+                                <Grid Grid.Row="1" Grid.ColumnSpan="4">
+                                    <Grid.Visibility>
+                                        <MultiBinding Converter="{StaticResource docSampleVisibleConverter}">
+                                            <Binding Path="EditMode" />
+                                            <Binding Path="CurrentSampleDocData" />
+                                        </MultiBinding>
+                                    </Grid.Visibility>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition SharedSizeGroup="D0" />
+                                        <ColumnDefinition SharedSizeGroup="D1" />
+                                        <ColumnDefinition SharedSizeGroup="D2" />
+                                        <ColumnDefinition SharedSizeGroup="D3" />
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="50" />
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Text="Образец:" TextWrapping="Wrap" VerticalAlignment="Center" Style="{StaticResource fieldsCaptionStyle}" />
+                                    <Button Grid.Column="1" Style="{StaticResource OpenDocBtnStyle}"
+                                            IsEnabled="{Binding CurrentSampleDocData, Converter={StaticResource notNullToBooleanConverter}}"
+                                            Command="{Binding OpenDocumCommand}" CommandParameter="DocSampleFile" >
+                                        <StackPanel Orientation="Horizontal">
+                                            <Image Source="/Resources/files_kcr2ip7vk1sd_32.png" Margin="0,2,5,2" />
+                                            <TextBlock Text="Открыть" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Button>
+                                    <Grid Grid.Column="2" Visibility="{Binding EditMode, Converter={conv:BoolToCollapsedConverter}}" >
+                                        <Button Style="{StaticResource ChangeDocBtnStyle}"
+                                                Visibility="{Binding CurrentSampleDocData, Converter={conv:NullToCollapsedConverter}}"
+                                                Command="{Binding SelectDocumCommand}" CommandParameter="DocSampleFile">
+                                            <StackPanel Orientation="Horizontal">
+                                                <Image Source="/Resources/transfer_5jo2ztun4d33_32.png" Margin="0,2,5,2" />
+                                                <TextBlock Text="Заменить" VerticalAlignment="Center" />
+                                            </StackPanel>
+                                        </Button>
+                                        <Button Command="{Binding SelectDocumCommand}" CommandParameter="DocSampleFile"
+                                                Visibility="{Binding CurrentSampleDocData, Converter={conv:NotNullToCollapsedConverter}}"
+                                                Style="{StaticResource ChangeDocBtnStyle}" >
+                                            <StackPanel Orientation="Horizontal">
+                                                <Image Source="/Resources/analitika_zocfxhqkgjr1_32.png" Margin="0,2,5,2" />
+                                                <TextBlock Text="Выбрать" VerticalAlignment="Center" />
+                                            </StackPanel>
+                                        </Button>
+                                    </Grid>
+                                    <Button Grid.Column="3" Style="{StaticResource DeleteDocBtnStyle}"
+                                            Visibility="{Binding EditMode, Converter={conv:BoolToCollapsedConverter}}"
+                                            IsEnabled="{Binding CurrentSampleDocData, Converter={StaticResource notNullToBooleanConverter}}"
+                                            Command="{Binding DeleteDocumCommand}" CommandParameter="DocSampleFile" >
+                                        <StackPanel Orientation="Horizontal">
+                                            <Image Source="/Resources/trash_exbmbmykku9d_32.png" Margin="0,2,5,2"/>
+                                            <TextBlock Text="Удалить" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                    </Button>
+                                </Grid>
+                            </Grid>
+                        </GroupBox>
+                    </Grid>
+                </ScrollViewer>
+            </Border>
+        </DockPanel>
+        <Grid Background="AntiqueWhite" Opacity="0.8" Visibility="{Binding CurrError, Converter={conv:NullOrEmptyToHiddenConverter}}" Grid.ColumnSpan="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="20" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <TextBlock Text="{Binding CurrError}" Grid.Row="1" Style="{StaticResource errorTextStyle}" />
+        </Grid>
+    </Grid>
+</Window>

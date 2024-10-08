@@ -1,0 +1,118 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Style x:Key="btnDisableForTimeStyle" TargetType="Button">
+        <Setter Property="Cursor" Value="Hand" />
+        <Style.Triggers>
+            <EventTrigger RoutedEvent="Button.Click">
+                <EventTrigger.Actions>
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <BooleanAnimationUsingKeyFrames Storyboard.TargetProperty="IsEnabled">
+                                <DiscreteBooleanKeyFrame KeyTime="00:00:00" Value="False" />
+                                <DiscreteBooleanKeyFrame KeyTime="00:00:01" Value="True" />
+                            </BooleanAnimationUsingKeyFrames>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </EventTrigger.Actions>
+            </EventTrigger>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Opacity" Value="0.3"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+    <Style x:Key="dblAnimDocsBtnStyle" TargetType="Button">
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="buttonBorder" CornerRadius="{DynamicResource bordCornerRadiusBtnStyle}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        Background="{TemplateBinding Background}"
+                        Height="{TemplateBinding Height}"
+                        Width="{TemplateBinding Width}" >
+                        <ContentControl Margin="{TemplateBinding Padding}"
+                            HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                            VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                            Content="{TemplateBinding Content}" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="true">
+                            <Setter Property="FontWeight" Value="Bold" />
+                            <Setter TargetName="buttonBorder" Property="Background" Value="{DynamicResource bckgrndIfMouseOver}" />
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="true">
+                            <Setter TargetName="buttonBorder" Property="Background" Value="{DynamicResource bckgrndIfPressed}" />
+                            <Setter TargetName="buttonBorder" Property="BorderBrush" Value="{DynamicResource bordIfPressed}" />
+                            <Setter TargetName="buttonBorder" Property="BorderThickness" Value="3" />
+                            <Setter Property="Foreground" Value="White" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="false">
+                            <Setter Property="Foreground" Value="Gray"/>
+                            <Setter TargetName="buttonBorder" Property="Background" Value="LightGray"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style.Resources>
+            <ElasticEase x:Key="easeInEase" EasingMode="EaseOut" Oscillations="3" Springiness="3"/>
+            <SineEase x:Key="easeOutEase" EasingMode="EaseIn"/>
+        </Style.Resources>
+        <Style.Triggers>
+            <EventTrigger RoutedEvent="Mouse.MouseEnter">
+                <BeginStoryboard>
+                    <Storyboard>
+                        <DoubleAnimation Storyboard.TargetProperty="(Button.Width)" EasingFunction="{StaticResource ResourceKey=easeInEase}" To="125" Duration="0:0:1.0"/>
+                        <DoubleAnimation Storyboard.TargetProperty="(Button.Height)" EasingFunction="{StaticResource ResourceKey=easeInEase}" To="35" Duration="0:0:1.0"/>
+                    </Storyboard>
+                </BeginStoryboard>
+            </EventTrigger>
+            <EventTrigger RoutedEvent="Mouse.MouseLeave">
+                <BeginStoryboard>
+                    <Storyboard>
+                        <DoubleAnimation Storyboard.TargetProperty="(Button.Width)" EasingFunction="{StaticResource ResourceKey=easeOutEase}" To="120" Duration="0:0:0.2"/>
+                        <DoubleAnimation Storyboard.TargetProperty="(Button.Height)" EasingFunction="{StaticResource ResourceKey=easeOutEase}" To="30" Duration="0:0:0.2"/>
+                    </Storyboard>
+                </BeginStoryboard>
+            </EventTrigger>
+        </Style.Triggers>
+    </Style>
+    <Style x:Key="OpenDocBtnStyle" TargetType="Button"  BasedOn="{StaticResource dblAnimDocsBtnStyle}">
+        <Setter Property="Width" Value="120" />
+        <Setter Property="Height" Value="30" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Style.Resources>
+            <SolidColorBrush x:Key="bckgrndIfMouseOver" Color="PaleGreen" />
+            <SolidColorBrush x:Key="bckgrndIfPressed" Color="Green" />
+            <SolidColorBrush x:Key="bordIfPressed" Color="DarkGreen" />
+            <CornerRadius x:Key="bordCornerRadiusBtnStyle">10</CornerRadius>
+        </Style.Resources>
+    </Style>
+    <Style x:Key="ChangeDocBtnStyle" TargetType="Button"  BasedOn="{StaticResource dblAnimDocsBtnStyle}">
+        <Setter Property="Width" Value="120" />
+        <Setter Property="Height" Value="30" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="Margin" Value="5,0" />
+        <Style.Resources>
+            <SolidColorBrush x:Key="bckgrndIfMouseOver" Color="LightSkyBlue" />
+            <SolidColorBrush x:Key="bckgrndIfPressed" Color="Blue" />
+            <SolidColorBrush x:Key="bordIfPressed" Color="DarkBlue" />
+            <CornerRadius x:Key="bordCornerRadiusBtnStyle">10</CornerRadius>
+        </Style.Resources>
+    </Style>
+    <Style x:Key="DeleteDocBtnStyle" TargetType="Button" BasedOn="{StaticResource dblAnimDocsBtnStyle}">
+        <Setter Property="Width" Value="120" />
+        <Setter Property="Height" Value="30" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Style.Resources>
+            <SolidColorBrush x:Key="bckgrndIfMouseOver" Color="MistyRose" />
+            <SolidColorBrush x:Key="bckgrndIfPressed" Color="Red" />
+            <SolidColorBrush x:Key="bordIfPressed" Color="DarkRed" />
+            <CornerRadius x:Key="bordCornerRadiusBtnStyle">10</CornerRadius>
+        </Style.Resources>
+    </Style>
+</ResourceDictionary>

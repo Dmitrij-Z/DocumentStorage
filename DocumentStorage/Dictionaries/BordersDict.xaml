@@ -1,0 +1,25 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Style x:Key="brdrFlashingBorderStyle" TargetType="Border">
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding ElementName=btnSaveChange, Path=Visibility}" Value="Visible">
+                <Setter Property="BorderBrush" Value="Red" />
+                <DataTrigger.EnterActions>
+                    <BeginStoryboard x:Name="flashingBorder">
+                        <Storyboard>
+                            <ThicknessAnimation Storyboard.TargetProperty="BorderThickness"
+                                                From="2" To="0" Duration="0:0:1" RepeatBehavior="Forever" />
+                        </Storyboard>
+                    </BeginStoryboard>
+                </DataTrigger.EnterActions>
+            </DataTrigger>
+            <DataTrigger Binding="{Binding ElementName=btnSaveChange, Path=Visibility}" Value="Hidden">
+                <Setter Property="BorderThickness" Value="0" />
+                <Setter Property="BorderBrush" Value="Transparent" />
+                <DataTrigger.EnterActions>
+                    <StopStoryboard BeginStoryboardName="flashingBorder" />
+                </DataTrigger.EnterActions>
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+</ResourceDictionary>
