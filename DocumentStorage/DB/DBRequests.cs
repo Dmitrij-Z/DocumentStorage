@@ -5,7 +5,7 @@ using System.Data.SQLite;
 
 namespace DocumentStorage.DB
 {
-    class DBRequests
+    class DBRequests : IDisposable
     {
         #region Класс подключения/переменные
 
@@ -24,7 +24,7 @@ namespace DocumentStorage.DB
 
         #endregion
 
-        #region Создание БД, если не отсутствует
+        #region Создание БД, если отсутствует
 
         public string DbChecking()
         {
@@ -332,5 +332,14 @@ namespace DocumentStorage.DB
         }
 
         #endregion
+
+        public void Dispose()
+        {
+            if(dbConnection.State == System.Data.ConnectionState.Open)
+            {
+                dbConnection.Close();
+            }
+            dbConnection.Dispose();
+        }
     }
 }

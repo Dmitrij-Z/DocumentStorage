@@ -19,7 +19,7 @@ namespace DocumentStorage.Documents
         #region Подключение классов: расчета и взаимодействия с БД/переменные
 
         Calculate calc = new Calculate();
-        DBRequests dBRequests;
+        
 
         string tempDirr = Path.Combine(Environment.CurrentDirectory, "TempFiles");
 
@@ -35,7 +35,7 @@ namespace DocumentStorage.Documents
                 new SearchCondition(){ Id=1, TextValue="Слова в любом порядке" },
                 new SearchCondition(){ Id=2, TextValue="Содержит хотя бы одно слово" }
             };
-            dBRequests = new DBRequests();
+            DBRequests dBRequests = new DBRequests();
             CurrError = dBRequests.DbChecking();
             if (!string.IsNullOrEmpty(CurrError))
             {
@@ -43,6 +43,7 @@ namespace DocumentStorage.Documents
             }
             string err = string.Empty;
             Docs = new ObservableCollection<Doc>(dBRequests.GetAllDocs(out err));
+            dBRequests.Dispose();
             CurrError = err;
             DocsView = CollectionViewSource.GetDefaultView(Docs);
             DocsView.SortDescriptions.Add(new SortDescription("Title", ListSortDirection.Ascending));
@@ -242,29 +243,38 @@ namespace DocumentStorage.Documents
         public RelayCommand AddDocCommand => _addDocCommand ?? (_addDocCommand = new RelayCommand(AddDoc));
         private void AddDoc()
         {
-            DateTime addedDate = DateTime.Now;
-            string err = string.Empty;
-            CurrError = err;
-            Doc doc = new Doc();
-            doc.Title = CurrentTitle;
-            doc.FileName = CurrentFileName;
-            doc.Comment = CurrentComment;
-            doc.DocData = CurrentDocData;
-            doc.DocSampleData = CurrentSampleDocData;
-            doc.CreatedOn = addedDate;
-            doc.UpdatedOn = addedDate;
-            doc.State = 2;
-            doc.Id = dBRequests.InsertDocToDb(doc, out err);
-            if (doc.Id >= 0)
+            DBRequests dBRequests = new DBRequests();
+            try
             {
-                Docs.Add(doc);
-                DocsView.MoveCurrentTo(doc);
-                SelectedDoc = doc;
-                IsCurrDocChanged = false;
-            }
-            else
-            {
+                DateTime addedDate = DateTime.Now;
+                string err = string.Empty;
                 CurrError = err;
+                Doc doc = new Doc();
+                doc.Title = CurrentTitle;
+                doc.FileName = CurrentFileName;
+                doc.Comment = CurrentComment;
+                doc.DocData = CurrentDocData;
+                doc.DocSampleData = CurrentSampleDocData;
+                doc.CreatedOn = addedDate;
+                doc.UpdatedOn = addedDate;
+                doc.State = 2;
+                doc.Id = dBRequests.InsertDocToDb(doc, out err);
+                
+                if (doc.Id >= 0)
+                {
+                    Docs.Add(doc);
+                    DocsView.MoveCurrentTo(doc);
+                    SelectedDoc = doc;
+                    IsCurrDocChanged = false;
+                }
+                else
+                {
+                    CurrError = err;
+                }
+            }
+            finally
+            {
+                dBRequests.Dispose();
             }
         }
 
@@ -287,19 +297,27 @@ namespace DocumentStorage.Documents
         public RelayCommand DeleteDocCommand => _deleteDocCommand ?? (_deleteDocCommand = new RelayCommand(DeleteDoc));
         private void DeleteDoc()
         {
-            string err = string.Empty;
-            CurrError = err;
-            MessageBoxResult result = MessageBox.Show(App.Current.MainWindow, "Документ будет безвозвратно удален!\r\nПодтвердить удаление?", "Удаление", MessageBoxButton.OKCancel, MessageBoxImage.Warning);
-            if (result == MessageBoxResult.OK)
+            DBRequests dBRequests = new DBRequests();
+            try
             {
-                if (dBRequests.DeleteDoc(SelectedDoc.Id, out err))
+                string err = string.Empty;
+                CurrError = err;
+                MessageBoxResult result = MessageBox.Show(App.Current.MainWindow, "Документ будет безвозвратно удален!\r\nПодтвердить удаление?", "Удаление", MessageBoxButton.OKCancel, MessageBoxImage.Warning);
+                if (result == MessageBoxResult.OK)
                 {
-                    Docs.Remove(SelectedDoc);
+                    if (dBRequests.DeleteDoc(SelectedDoc.Id, out err))
+                    {
+                        Docs.Remove(SelectedDoc);
+                    }
+                    else
+                    {
+                        CurrError = err;
+                    }
                 }
-                else
-                {
-                    CurrError = err;
-                }
+            }
+            finally
+            {
+                dBRequests.Dispose();
             }
         }
 
@@ -517,6 +535,7 @@ namespace DocumentStorage.Documents
 
         private bool UpdateDoc(Doc doc)
         {
+            DBRequests dBRequests = new DBRequests();
             string err = string.Empty;
             string dTitle = string.Empty;
             CurrError = err;
@@ -552,6 +571,10 @@ namespace DocumentStorage.Documents
             {
                 CurrError = ex.Message;
                 return false;
+            }
+            finally
+            {
+                dBRequests.Dispose();
             }
         }
 
